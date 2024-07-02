@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
+
 # Create your views here.
 
 secret_key = os.getenv('SECRET_KEY')
@@ -16,6 +17,7 @@ auth_url = os.getenv('AUTH_URL')
 
 def decode_jwt(token):
     try:
+        
         payload = jwt.decode(token, secret_key, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
@@ -47,3 +49,47 @@ class RegisterAPIView(APIView):
         response = requests.post(f'{auth_url}/register/', data=data_json, headers=headers)
         return Response(response.json())
     
+
+class UserUpdateRetriveDeleteAPIView(APIView):
+    def get(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            token = str(token)
+            payload = decode_jwt(token)
+            print(payload)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            user_id = payload.get('user_id')
+            headers = {'Authorization': token}
+            response = requests.get(f'{auth_url}/user/{user_id}/', headers=headers)
+            return Response(response.json())
+        except Exception as e:
+            return Response({'error': str(e)})
+    
+    def put(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = decode_jwt(token)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            user_id = payload.get('user_id')
+            data = request.data
+            data_json = json.dumps(data)
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+            response = requests.put(f'{auth_url}/user/{user_id}/', data=data_json, headers=headers)
+            return Response(response.json())
+        except Exception as e:
+            return Response({'error': str(e)})
+    
+    def delete(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = decode_jwt(token)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            user_id = payload.get('user_id')
+            headers = {'Authorization': token}
+            response = requests.delete(f'{auth_url}/user/{user_id}/', headers=headers)
+            return Response({'User deleted successfully'})
+        except Exception as e:
+            return Response({'error': str(e)})
