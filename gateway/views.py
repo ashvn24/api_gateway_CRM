@@ -13,6 +13,8 @@ load_dotenv()
 
 secret_key = os.getenv('SECRET_KEY')
 auth_url = os.getenv('AUTH_URL')
+tast_url = os.getenv('TASK_URL')
+notification_url = os.getenv('NOTIFICATION_URL')
 
 
 def decode_jwt(token):
@@ -56,7 +58,6 @@ class UserUpdateRetriveDeleteAPIView(APIView):
             token = request.headers.get('Authorization')
             token = str(token)
             payload = decode_jwt(token)
-            print(payload)
             if not isinstance(payload, dict):
                 return Response({'error': payload})
             user_id = payload.get('user_id')
@@ -93,3 +94,52 @@ class UserUpdateRetriveDeleteAPIView(APIView):
             return Response({'User deleted successfully'})
         except Exception as e:
             return Response({'error': str(e)})
+        
+#-------------------------------------------------------Notification------------------------------------------------------------
+
+class NotificationAPIView(APIView):
+    
+    def get(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = decode_jwt(token)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            headers = {'Authorization': token}
+            response = requests.get(f'{notification_url}/notifications/', headers=headers)
+            return Response(response.json())
+        except Exception as e:
+            return Response({'error': str(e)})
+        
+
+#-------------------------------------------------------Task------------------------------------------------------------
+class BookAPIView(APIView):
+    def get(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = decode_jwt(token)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            headers = {'Authorization': token}
+            response = requests.get(f'{tast_url}/appointments/', headers=headers)
+            return Response(response.json())
+        except Exception as e:
+            return Response({'error': str(e)})
+        
+    def post(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = decode_jwt(token)
+            if not isinstance(payload, dict):
+                return Response({'error': payload})
+            user_id = payload.get('user_id')
+            data = request.data
+            data['user_id'] = user_id 
+            
+            data_json = json.dumps(data)
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+            response = requests.post(f'{tast_url}/appointments/', data=data_json, headers=headers)
+            return Response(response.json())
+        except Exception as e:
+            return Response({'error': str(e)})
+        
