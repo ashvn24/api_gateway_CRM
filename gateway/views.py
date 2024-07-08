@@ -19,7 +19,7 @@ notification_url = os.getenv('NOTIFICATION_URL')
 
 def decode_jwt(token):
     try:
-        
+        print(token)
         payload = jwt.decode(token, secret_key, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
@@ -135,7 +135,6 @@ class BookAPIView(APIView):
             user_id = payload.get('user_id')
             data = request.data
             data['user_id'] = user_id 
-            
             data_json = json.dumps(data)
             headers = {'Content-Type': 'application/json', 'Authorization': token}
             response = requests.post(f'{tast_url}/appointments/', data=data_json, headers=headers)
